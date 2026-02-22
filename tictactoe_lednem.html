@@ -56,45 +56,59 @@
 
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-    function tone(freq, start, dur, type = 'sine', vol = 0.12) {
+    function tone(freq, start, dur, type = 'sine', vol = 0.10) {
       const o = audioCtx.createOscillator();
       const g = audioCtx.createGain();
       o.type = type;
       o.frequency.setValueAtTime(freq, start);
       g.gain.setValueAtTime(0.0001, start);
-      g.gain.exponentialRampToValueAtTime(vol, start + 0.02);
+      g.gain.exponentialRampToValueAtTime(vol, start + 0.05);
       g.gain.exponentialRampToValueAtTime(0.0001, start + dur);
       o.connect(g).connect(audioCtx.destination);
       o.start(start);
-      o.stop(start + dur + 0.02);
+      o.stop(start + dur + 0.05);
+    }
+
+    function applauseBurst(start, dur = 0.20, vol = 0.035) {
+      const buffer = audioCtx.createBuffer(1, Math.floor(audioCtx.sampleRate * dur), audioCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * 0.7;
+
+      const src = audioCtx.createBufferSource();
+      const filter = audioCtx.createBiquadFilter();
+      const g = audioCtx.createGain();
+
+      filter.type = 'bandpass';
+      filter.frequency.value = 1400;
+      filter.Q.value = 0.7;
+
+      g.gain.setValueAtTime(vol, start);
+      g.gain.exponentialRampToValueAtTime(0.001, start + dur);
+
+      src.buffer = buffer;
+      src.connect(filter).connect(g).connect(audioCtx.destination);
+      src.start(start);
+      src.stop(start + dur);
     }
 
     function playWinSound() {
       const t = audioCtx.currentTime;
-      // fanfare
-      [523, 659, 784, 1047].forEach((f, i) => tone(f, t + i * 0.12, 0.22, 'triangle', 0.14));
-      // applause-like bursts (noise)
-      for (let i = 0; i < 18; i++) {
-        const now = t + 0.55 + i * 0.04;
-        const buffer = audioCtx.createBuffer(1, 3000, audioCtx.sampleRate);
-        const data = buffer.getChannelData(0);
-        for (let j = 0; j < data.length; j++) data[j] = (Math.random() * 2 - 1) * (1 - j / data.length);
-        const src = audioCtx.createBufferSource();
-        const g = audioCtx.createGain();
-        src.buffer = buffer;
-        g.gain.setValueAtTime(0.12, now);
-        g.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
-        src.connect(g).connect(audioCtx.destination);
-        src.start(now);
+      // slower, more natural fanfare
+      [392, 523, 659, 784].forEach((f, i) => tone(f, t + i * 0.20, 0.38, 'triangle', 0.09));
+      tone(880, t + 0.90, 0.55, 'sine', 0.08);
+
+      // slower applause pattern
+      for (let i = 0; i < 12; i++) {
+        applauseBurst(t + 1.05 + i * 0.11, 0.18, 0.03 + Math.random() * 0.015);
       }
     }
 
     function playDrawSound() {
       const t = audioCtx.currentTime;
-      // kiss-like "mwah"
-      tone(620, t, 0.10, 'sine', 0.12);
-      tone(460, t + 0.08, 0.16, 'sine', 0.14);
-      tone(320, t + 0.20, 0.22, 'triangle', 0.10);
+      // slower kiss-like "mwah"
+      tone(420, t, 0.24, 'sine', 0.09);
+      tone(360, t + 0.16, 0.28, 'sine', 0.10);
+      tone(300, t + 0.34, 0.34, 'triangle', 0.08);
     }
 
     function render() {

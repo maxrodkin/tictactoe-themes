@@ -43,6 +43,7 @@ def dashboard():
 <body>
   <div class='card'>
     <h1>🚀 OpenClaw Dashboard</h1>
+    <p><b>Сообщение:</b> Девелы Петбай Максим, новым плодим и готовимся!</p>
     <p class='muted'>Обновлено: {html.escape(now)}</p>
     <ul>
       <li><b>Host:</b> {html.escape(host)}</li>

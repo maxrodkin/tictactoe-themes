@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tic-Tac-Toe Lednem</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #0f172a; color: #e2e8f0; margin: 0; display: grid; place-items: center; min-height: 100vh; }
+    .wrap { width: 340px; text-align: center; }
+    h1 { margin-bottom: 8px; }
+    #status { margin: 10px 0 16px; color: #93c5fd; min-height: 20px; }
+    .board { display: grid; grid-template-columns: repeat(3, 100px); gap: 10px; justify-content: center; }
+    button.cell { width: 100px; height: 100px; font-size: 2rem; border: 0; border-radius: 12px; background: #1e293b; color: #fff; cursor: pointer; display:grid; place-items:center; }
+    button.cell:hover { background: #334155; }
+    .avatar { width: 76px; height: 76px; object-fit: cover; border-radius: 50%; }
+    .controls { margin-top: 14px; display: flex; gap: 8px; justify-content: center; align-items: center; flex-wrap: wrap; }
+    .btn { background: #2563eb; border: 0; color: white; padding: 10px 14px; border-radius: 8px; cursor: pointer; }
+    select { background: #1e293b; color: #fff; border: 1px solid #475569; border-radius: 8px; padding: 8px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>🎮 Tic-Tac-Toe Lednem</h1>
+    <div class="controls">
+      <label for="mode">Mode:</label>
+      <select id="mode">
+        <option value="pvp">Player vs Player</option>
+        <option value="ai">Player vs Computer</option>
+      </select>
+      <button class="btn" id="reset">New Game</button>
+    </div>
+    <div id="status">Player X turn</div>
+    <div class="board" id="board"></div>
+  </div>
+
+  <script>
+    const boardEl = document.getElementById('board');
+    const statusEl = document.getElementById('status');
+    const resetBtn = document.getElementById('reset');
+    const modeEl = document.getElementById('mode');
+
+    let board = Array(9).fill('');
+    let player = 'X';
+    let gameOver = false;
+
+    const ICONS = {
+      X: 'lednem_x.png',
+      O: 'lednem_o.png'
+    };
+
+    const wins = [
+      [0,1,2],[3,4,5],[6,7,8],
+      [0,3,6],[1,4,7],[2,5,8],
+      [0,4,8],[2,4,6]
+    ];
+
+    function render() {
+      boardEl.innerHTML = '';
+      board.forEach((val, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'cell';
+        if (val) {
+          const img = document.createElement('img');
+          img.className = 'avatar';
+          img.src = ICONS[val];
+          img.alt = val;
+          btn.appendChild(img);
+        }
+        btn.disabled = gameOver || !!val;
+        btn.onclick = () => move(i);
+        boardEl.appendChild(btn);
+      });
+    }
+
+    function checkWinner() {
+      for (const [a,b,c] of wins) {
+        if (board[a] && board[a] === board[b] && board[b] === board[c]) return board[a];
+      }
+      if (board.every(Boolean)) return 'draw';
+      return null;
+    }
+
+    function updateStatus() {
+      if (gameOver) return;
+      statusEl.textContent = modeEl.value === 'ai' && player === 'O'
+        ? 'Computer thinking...'
+        : `Player ${player} turn`;
+    }
+
+    function endIfNeeded() {
+      const result = checkWinner();
+      if (result === 'draw') {
+        statusEl.textContent = 'Draw!';
+        gameOver = true;
+      } else if (result) {
+        statusEl.textContent = result === 'O' && modeEl.value === 'ai' ? 'Computer wins!' : `Player ${result} wins!`;
+        gameOver = true;
+      }
+      return gameOver;
+    }
+
+    function move(i) {
+      if (gameOver || board[i]) return;
+      board[i] = player;
+      render();
+      if (endIfNeeded()) return;
+      player = player === 'X' ? 'O' : 'X';
+      updateStatus();
+      if (modeEl.value === 'ai' && player === 'O' && !gameOver) {
+        setTimeout(computerMove, 250);
+      }
+    }
+
+    function computerMove() {
+      if (gameOver) return;
+      const empty = board.map((v,i) => v ? -1 : i).filter(i => i >= 0);
+      if (!empty.length) return;
+
+      // simple AI: win > block > center > random
+      const pickWinning = (mark) => {
+        for (const i of empty) {
+          board[i] = mark;
+          const won = checkWinner() === mark;
+          board[i] = '';
+          if (won) return i;
+        }
+        return null;
+      };
+
+      let choice = pickWinning('O');
+      if (choice === null) choice = pickWinning('X');
+      if (choice === null && board[4] === '') choice = 4;
+      if (choice === null) choice = empty[Math.floor(Math.random() * empty.length)];
+
+      board[choice] = 'O';
+      render();
+      if (endIfNeeded()) return;
+      player = 'X';
+      updateStatus();
+    }
+
+    function resetGame() {
+      board = Array(9).fill('');
+      player = 'X';
+      gameOver = false;
+      statusEl.textContent = 'Player X turn';
+      render();
+    }
+
+    resetBtn.onclick = resetGame;
+    modeEl.onchange = resetGame;
+
+    render();
+  </script>
+</body>
+</html>

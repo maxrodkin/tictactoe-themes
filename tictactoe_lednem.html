@@ -55,6 +55,8 @@
     ];
 
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const winAudio = new Audio('applause.wav');
+    winAudio.preload = 'auto';
 
     function tone(freq, start, dur, type = 'sine', vol = 0.10) {
       const o = audioCtx.createOscillator();
@@ -69,38 +71,9 @@
       o.stop(start + dur + 0.05);
     }
 
-    function applauseBurst(start, dur = 0.20, vol = 0.035) {
-      const buffer = audioCtx.createBuffer(1, Math.floor(audioCtx.sampleRate * dur), audioCtx.sampleRate);
-      const data = buffer.getChannelData(0);
-      for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * 0.7;
-
-      const src = audioCtx.createBufferSource();
-      const filter = audioCtx.createBiquadFilter();
-      const g = audioCtx.createGain();
-
-      filter.type = 'bandpass';
-      filter.frequency.value = 1400;
-      filter.Q.value = 0.7;
-
-      g.gain.setValueAtTime(vol, start);
-      g.gain.exponentialRampToValueAtTime(0.001, start + dur);
-
-      src.buffer = buffer;
-      src.connect(filter).connect(g).connect(audioCtx.destination);
-      src.start(start);
-      src.stop(start + dur);
-    }
-
     function playWinSound() {
-      const t = audioCtx.currentTime;
-      // slower, more natural fanfare
-      [392, 523, 659, 784].forEach((f, i) => tone(f, t + i * 0.20, 0.38, 'triangle', 0.09));
-      tone(880, t + 0.90, 0.55, 'sine', 0.08);
-
-      // slower applause pattern
-      for (let i = 0; i < 12; i++) {
-        applauseBurst(t + 1.05 + i * 0.11, 0.18, 0.03 + Math.random() * 0.015);
-      }
+      winAudio.currentTime = 0;
+      winAudio.play().catch(() => {});
     }
 
     function playDrawSound() {

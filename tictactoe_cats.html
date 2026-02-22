@@ -54,6 +54,9 @@
       [0,4,8],[2,4,6]
     ];
 
+    const winAudio = new Audio('applause_v2.wav');
+    winAudio.preload = 'auto';
+
     function render() {
       boardEl.innerHTML = '';
       board.forEach((val, i) => {
@@ -95,6 +98,8 @@
       } else if (result) {
         statusEl.textContent = result === 'O' && modeEl.value === 'ai' ? 'Computer wins!' : `Player ${result} wins!`;
         gameOver = true;
+        winAudio.currentTime = 0;
+        winAudio.play().catch(() => {});
       }
       return gameOver;
     }

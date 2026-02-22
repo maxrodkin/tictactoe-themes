@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tic-Tac-Toe</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #0f172a; color: #e2e8f0; margin: 0; display: grid; place-items: center; min-height: 100vh; }
+    .wrap { width: 320px; text-align: center; }
+    h1 { margin-bottom: 8px; }
+    #status { margin: 10px 0 16px; color: #93c5fd; }
+    .board { display: grid; grid-template-columns: repeat(3, 100px); gap: 10px; }
+    button.cell { width: 100px; height: 100px; font-size: 2rem; border: 0; border-radius: 12px; background: #1e293b; color: #fff; cursor: pointer; }
+    button.cell:hover { background: #334155; }
+    .controls { margin-top: 14px; }
+    .reset { background: #2563eb; border: 0; color: white; padding: 10px 14px; border-radius: 8px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>🎮 Tic-Tac-Toe</h1>
+    <div id="status">Player X turn</div>
+    <div class="board" id="board"></div>
+    <div class="controls"><button class="reset" id="reset">New Game</button></div>
+  </div>
+
+  <script>
+    const boardEl = document.getElementById('board');
+    const statusEl = document.getElementById('status');
+    const resetBtn = document.getElementById('reset');
+
+    let board = Array(9).fill('');
+    let player = 'X';
+    let gameOver = false;
+
+    const wins = [
+      [0,1,2],[3,4,5],[6,7,8],
+      [0,3,6],[1,4,7],[2,5,8],
+      [0,4,8],[2,4,6]
+    ];
+
+    function render() {
+      boardEl.innerHTML = '';
+      board.forEach((val, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'cell';
+        btn.textContent = val;
+        btn.onclick = () => move(i);
+        boardEl.appendChild(btn);
+      });
+    }
+
+    function checkWinner() {
+      for (const [a,b,c] of wins) {
+        if (board[a] && board[a] === board[b] && board[b] === board[c]) return board[a];
+      }
+      if (board.every(Boolean)) return 'draw';
+      return null;
+    }
+
+    function move(i) {
+      if (gameOver || board[i]) return;
+      board[i] = player;
+      const result = checkWinner();
+      if (result === 'draw') {
+        statusEl.textContent = 'Draw!';
+        gameOver = true;
+      } else if (result) {
+        statusEl.textContent = `Player ${result} wins!`;
+        gameOver = true;
+      } else {
+        player = player === 'X' ? 'O' : 'X';
+        statusEl.textContent = `Player ${player} turn`;
+      }
+      render();
+    }
+
+    resetBtn.onclick = () => {
+      board = Array(9).fill('');
+      player = 'X';
+      gameOver = false;
+      statusEl.textContent = 'Player X turn';
+      render();
+    };
+
+    render();
+  </script>
+</body>
+</html>
